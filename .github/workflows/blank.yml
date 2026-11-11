@@ -1,0 +1,43 @@
+
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Unpack app source
+        run: unzip -o moj_ves_premium_source.zip 'pubspec.yaml' 'lib/*' 'README.md' -d .
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Generate Android platform
+        run: flutter create --platforms=android --org com.example .
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build APK
+        run: flutter build apk --release
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: moj-ves-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
